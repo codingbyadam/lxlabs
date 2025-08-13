@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Explorer App</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Updated to match ChatGPT's dark theme: dark grays, minimal shadows, green accents */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 120px; /* Increased space for fixed chat and buttons */
+            background-color: #343541;
+            color: #D1D5DB;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #202123;
+            color: #fff;
+        }
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .menu {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background-color: #343541;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+            z-index: 10;
+        }
+        .menu a {
+            display: block;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px;
+        }
+        nav {
+            display: flex;
+            gap: 10px;
+        }
+        nav button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        nav button.active {
+            border-bottom: 2px solid #10a37f;
+        }
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* Chat fixed to bottom */
+        .chat-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            padding: 10px;
+            background-color: #202123;
+            border-top: 1px solid #4D4D4F;
+            z-index: 5;
+        }
+        .chat-fixed input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #4D4D4F;
+            border-radius: 4px;
+            margin: 0 5px;
+            background-color: #40414F;
+            color: #fff;
+        }
+        .chat-fixed button {
+            background-color: #10a37f;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* Chat page styles */
+        #chat {
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #chat .chat-messages {
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #343541;
+            border-radius: 8px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            color: #fff;
+        }
+        .user-message {
+            background-color: #343541;
+            align-self: flex-end;
+        }
+        .bot-message {
+            background-color: #444654;
+        }
+        /* Watermark */
+        .watermark {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #10a37f, #00ff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: 1;
+            pointer-events: none;
+            margin-bottom: 20px;
+        }
+        /* Example prompts */
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+        .example-card {
+            background-color: #444654;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            color: #D1D5DB;
+            cursor: pointer;
+            width: 200px;
+            text-align: center;
+        }
+        .example-card:hover {
+            background-color: #505565;
+        }
+        /* Chat buttons */
+        .chat-buttons {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            z-index: 5;
+            background-color: #202123;
+        }
+        .chat-buttons button {
+            background-color: #10a37f;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* Cards for careers, projects, learning experiences */
+        .card {
+            background-color: #444654;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            color: #D1D5DB;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        .card button {
+            background-color: #10a37f;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .favorite-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            float: right;
+            color: #D1D5DB;
+        }
+        /* Explore page: Pinterest-like grid */
+        #explore {
+            height: 100%;
+            overflow-y: auto;
+        }
+        #explore .sub-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        #explore .sub-nav button {
+            background: none;
+            border: none;
+            color: #D1D5DB;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        #explore .sub-nav button.active {
+            border-bottom: 2px solid #10a37f;
+        }
+        .grid {
+            column-count: 2;
+            column-gap: 10px;
+        }
+        .grid .card {
+            break-inside: avoid;
+            margin-bottom: 10px;
+        }
+        /* Projects page (no chat) */
+        #projects .question-of-day {
+            background-color: #444654;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            color: #D1D5DB;
+        }
+        /* Profile, Portfolio, Settings, Favorites */
+        .info-section {
+            background-color: #444654;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            color: #D1D5DB;
+        }
+        .info-section h2 {
+            color: #fff;
+        }
+        /* Media queries for larger screens */
+        @media (min-width: 768px) {
+            header {
+                padding: 15px;
+            }
+            nav button {
+                font-size: 18px;
+            }
+            .menu {
+                top: 60px;
+                left: 20px;
+            }
+            .grid {
+                column-count: 3;
+            }
+            .card {
+                margin: 10px 0;
+            }
+            .watermark {
+                font-size: 3em;
+            }
+            .examples {
+                max-width: 60%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="hamburger" onclick="toggleMenu()">☰</div>
+            <div class="menu" id="menu">
+                <a onclick="navigate('profile')">Profile</a>
+                <a onclick="navigate('portfolio')">Portfolio</a>
+                <a onclick="navigate('settings')">Settings</a>
+            </div>
+            <nav>
+                <button onclick="navigate('chat')" class="active">Chat</button>
+                <button onclick="navigate('explore')">Explore</button>
+                <button onclick="navigate('projects')">Projects</button>
+            </nav>
+        </header>
+        <main>
+            <section id="chat" class="page active">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div id="watermark" class="watermark">Welcome to LX Labs</div>
+                <div id="examples" class="examples">
+                    <div class="example-card" onclick="sendExample('Recommend a career based on my interests')">Recommend a career</div>
+                    <div class="example-card" onclick="sendExample('Create a learning plan for Python')">Learn Python</div>
+                    <div class="example-card" onclick="sendExample('Suggest a mini-project for AI')">AI Mini-Project</div>
+                    <div class="example-card" onclick="sendExample('What skills do I need for software engineering?')">Software Engineering Skills</div>
+                </div>
+            </section>
+            <section id="explore" class="page">
+                <div class="sub-nav">
+                    <button id="explore-projects" class="active" onclick="setExploreMode('projects')">Projects</button>
+                    <button id="explore-careers" onclick="setExploreMode('careers')">Careers</button>
+                    <button id="explore-favorites" onclick="setExploreMode('favorites')">Favorites</button>
+                </div>
+                <div class="grid" id="explore-content"></div>
+                <div id="loading" style="text-align: center; padding: 10px; color: #D1D5DB;">Loading more...</div>
+            </section>
+            <section id="profile" class="page">
+                <div class="info-section">
+                    <h2>Interests</h2>
+                    <p>Technology, Coding, AI</p>
+                </div>
+                <div class="info-section">
+                    <h2>Skills</h2>
+                    <p>JavaScript, Python, Web Development</p>
+                </div>
+                <div class="info-section">
+                    <h2>Values</h2>
+                    <p>Innovation, Learning, Collaboration</p>
+                </div>
+                <div class="info-section">
+                    <h2>Career Interests</h2>
+                    <p>Software Engineering, Data Science</p>
+                    <button onclick="startAssessment()">Take Career Assessment</button>
+                </div>
+            </section>
+            <section id="projects" class="page">
+                <div class="question-of-day">
+                    <h3>Question of the Day</h3>
+                    <p>What career path excites you most?</p>
+                </div>
+                <div class="grid" id="courses-content"></div>
+            </section>
+            <section id="portfolio" class="page">
+                <div class="info-section">
+                    <h2>Knowledge Summary</h2>
+                    <p>Proficient in web technologies, beginner in AI.</p>
+                </div>
+                <div class="info-section">
+                    <h2>Completed Projects</h2>
+                    <p>Built a simple chat app, Learned basic Python.</p>
+                </div>
+            </section>
+            <section id="settings" class="page">
+                <div class="info-section">
+                    <h2>Settings</h2>
+                    <p>Theme: Dark (toggle coming soon)</p>
+                    <p>Notifications: On</p>
+                    <p>Clear Local Storage: <button onclick="clearStorage()">Clear</button></p>
+                </div>
+            </section>
+        </main>
+        <div class="chat-fixed" id="chat-fixed">
+            <input type="text" id="chat-input" placeholder="Ask anything...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="chat-buttons" id="chat-buttons">
+            <button onclick="startAssessment()">Career Assessment</button>
+            <button onclick="createLearningExperience()">Create Learning Experience</button>
+        </div>
+    </div>
+    <script>
+        // Generic data
+        const careers = [
+            { id: 1, name: 'Software Engineer', overview: 'Develop software applications and systems.' },
+            { id: 2, name: 'Doctor', overview: 'Provide medical care and treatment.' },
+            { id: 3, name: 'Teacher', overview: 'Educate and inspire students.' }
+        ];
+        let projects = [
+            { id: 1, name: 'Build a Website', overview: 'Create a personal portfolio site using HTML/CSS/JS.' },
+            { id: 2, name: 'Learn Python', overview: 'Basics of Python programming language.' },
+            { id: 3, name: 'AI Mini-Project', overview: 'Build a simple chatbot.' }
+        ];
+        // Local storage helpers
+        function getFavorites(type) {
+            return JSON.parse(localStorage.getItem(type) || '[]');
+        }
+        function toggleFavorite(type, item) {
+            let favs = getFavorites(type);
+            const index = favs.findIndex(f => f.id === item.id);
+            if (index !== -1) {
+                favs.splice(index, 1);
+            } else {
+                favs.push(item);
+            }
+            localStorage.setItem(type, JSON.stringify(favs));
+            // Reload current content to update icons
+            reloadCurrentContent();
+        }
+        function reloadCurrentContent() {
+            if (currentPage === 'explore') {
+                document.getElementById('explore-content').innerHTML = '';
+                loadMoreExplore();
+            } else if (currentPage === 'projects') {
+                loadCourses();
+            }
+            // For chat, icons not updated dynamically
+        }
+        function isFavorited(type, id) {
+            return getFavorites(type).some(f => f.id === id);
+        }
+        // Card creation helpers
+        function createProjectCard(p, inFavorites = false) {
+            const icon = isFavorited('projects', p.id) ? 'favorite' : 'favorite_border';
+            const btn = inFavorites ? '' : `<button class="favorite-btn" onclick="toggleFavorite('projects', {id: ${p.id}, name: '${p.name}', overview: '${p.overview}'})"><i class="material-icons">${icon}</i></button>`;
+            return `
+                <div class="card">
+                    <h3>${p.name}</h3>
+                    <p>${p.overview}</p>
+                    ${btn}
+                    <button onclick="tryItOut('project', '${p.name}')">Try it out</button>
+                </div>
+            `;
+        }
+        function createCareerCard(c, inFavorites = false) {
+            const icon = isFavorited('careers', c.id) ? 'favorite' : 'favorite_border';
+            const btn = inFavorites ? '' : `<button class="favorite-btn" onclick="toggleFavorite('careers', {id: ${c.id}, name: '${c.name}', overview: '${c.overview}'})"><i class="material-icons">${icon}</i></button>`;
+            return `
+                <div class="card">
+                    <h3>${c.name}</h3>
+                    <p>${c.overview}</p>
+                    ${btn}
+                    <button onclick="tryItOut('career', '${c.name}')">Try it out</button>
+                </div>
+            `;
+        }
+        // Navigation
+        let currentPage = 'chat';
+        function navigate(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`nav button[onclick="navigate('${page}')"]`);
+            if (btn) btn.classList.add('active');
+            toggleMenu(false);
+            currentPage = page;
+            const chatFixed = document.getElementById('chat-fixed');
+            chatFixed.style.display = (page === 'projects' ? 'none' : 'flex');
+            if (page === 'explore') loadMoreExplore();
+            if (page === 'projects') loadCourses();
+            const watermark = document.getElementById('watermark');
+            const examples = document.getElementById('examples');
+            const chatButtons = document.getElementById('chat-buttons');
+            if (page === 'chat') {
+                const messages = document.getElementById('chat-messages');
+                const hasMessages = messages.innerHTML.trim() !== '';
+                watermark.style.display = hasMessages ? 'none' : 'block';
+                examples.style.display = hasMessages ? 'none' : 'flex';
+                chatButtons.style.display = hasMessages ? 'none' : 'flex';
+            } else {
+                watermark.style.display = 'none';
+                examples.style.display = 'none';
+                chatButtons.style.display = 'none';
+            }
+        }
+        function toggleMenu(show = null) {
+            const menu = document.getElementById('menu');
+            menu.style.display = show === null ? (menu.style.display === 'none' ? 'block' : 'none') : (show ? 'block' : 'none');
+        }
+        // Chat functionality (now global, fixed)
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            let messages;
+            if (currentPage === 'chat') {
+                messages = document.getElementById('chat-messages');
+                if (input.value.trim()) {
+                    messages.innerHTML += `<div class="message user-message">${input.value}</div>`;
+                    // Hide watermark, examples, and buttons after first user message
+                    document.getElementById('watermark').style.display = 'none';
+                    document.getElementById('examples').style.display = 'none';
+                    document.getElementById('chat-buttons').style.display = 'none';
+                    generateResponse(input.value, messages);
+                    input.value = '';
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            } else if (currentPage === 'explore') {
+                if (input.value.trim()) {
+                    generateResponse(input.value, null, true);
+                    input.value = '';
+                }
+            }
+        }
+        function sendExample(prompt) {
+            const input = document.getElementById('chat-input');
+            input.value = prompt;
+            sendMessage();
+        }
+        function generateResponse(query, messages = null, isExplore = false) {
+            let response = 'Here\'s some information based on your query.';
+            let cards = '';
+            if (query.toLowerCase().includes('career')) {
+                response = 'Recommended careers:';
+                cards = careers.map(c => createCareerCard(c)).join('');
+                if (isExplore) setExploreMode('careers');
+            } else if (query.toLowerCase().includes('project')) {
+                response = 'Recommended mini-projects:';
+                projects = projects.concat([
+                    { id: projects.length + 1, name: 'New Project based on ' + query, overview: 'Custom project.' }
+                ]);
+                cards = projects.map(p => createProjectCard(p)).join('');
+                if (isExplore) setExploreMode('projects');
+            } else if (query.toLowerCase().includes('learn')) {
+                response = 'Learning experience overview:';
+                cards = `
+                    <div class="card">
+                        <h3>Learn JavaScript</h3>
+                        <p>Basics to advanced JS.</p>
+                        <button onclick="startLearning()">Begin</button>
+                    </div>
+                `;
+            } else if (query.toLowerCase().includes('assessment')) {
+                response = 'Take a career assessment: Answer questions to find matches.';
+                // Simulate assessment
+            }
+            if (isExplore) {
+                // Update explore content
+                document.getElementById('explore-content').innerHTML = cards;
+            } else {
+                messages.innerHTML += `<div class="message bot-message">${response}${cards}</div>`;
+            }
+        }
+        function startLearning() {
+            const messages = document.getElementById('chat-messages');
+            messages.innerHTML += `<div class="message bot-message">Full learning experience: Step 1: Basics, Step 2: Advanced, etc.</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+        function startAssessment() {
+            navigate('chat');
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                input.value = 'career assessment';
+                sendMessage();
+            }, 100);
+        }
+        function createLearningExperience() {
+            navigate('chat');
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                input.value = 'create learning experience';
+                sendMessage();
+            }, 100);
+        }
+        function tryItOut(type, name) {
+            navigate('chat');
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                input.value = `Let's try the ${type}: ${name}`;
+                sendMessage();
+            }, 100);
+        }
+        // Explore mode
+        let exploreMode = 'projects';
+        function setExploreMode(mode) {
+            exploreMode = mode;
+            document.getElementById('explore-projects').classList.toggle('active', mode === 'projects');
+            document.getElementById('explore-careers').classList.toggle('active', mode === 'careers');
+            document.getElementById('explore-favorites').classList.toggle('active', mode === 'favorites');
+            document.getElementById('explore-content').innerHTML = '';
+            const loading = document.getElementById('loading');
+            if (mode === 'favorites') {
+                loading.style.display = 'none';
+                const content = document.getElementById('explore-content');
+                content.innerHTML += getFavorites('projects').map(p => createProjectCard(p)).join('');
+                content.innerHTML += getFavorites('careers').map(c => createCareerCard(c)).join('');
+            } else {
+                loading.style.display = 'block';
+                loadMoreExplore();
+            }
+        }
+        // Explore infinite scroll
+        let explorePage = 0;
+        function loadMoreExplore() {
+            if (exploreMode === 'favorites') return;
+            const content = document.getElementById('explore-content');
+            for (let i = 0; i < 5; i++) {
+                if (exploreMode === 'projects') {
+                    const proj = projects[Math.floor(Math.random() * projects.length)];
+                    content.innerHTML += createProjectCard(proj);
+                } else if (exploreMode === 'careers') {
+                    const career = careers[Math.floor(Math.random() * careers.length)];
+                    content.innerHTML += createCareerCard(career);
+                }
+            }
+            explorePage++;
+        }
+        document.getElementById('explore').addEventListener('scroll', () => {
+            if (document.getElementById('explore').scrollTop + document.getElementById('explore').clientHeight >= document.getElementById('explore').scrollHeight - 20) {
+                loadMoreExplore();
+            }
+        });
+        // Load courses on projects page (now grid)
+        function loadCourses() {
+            const content = document.getElementById('courses-content');
+            content.innerHTML = projects.map(p => createProjectCard(p)).join('');
+        }
+        // Settings clear
+        function clearStorage() {
+            localStorage.clear();
+            alert('Local storage cleared.');
+        }
+        // Initial loads
+        navigate('chat'); // Start on chat
+    </script>
+</body>
+</html>
